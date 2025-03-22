@@ -1,8 +1,13 @@
 '''Tests each component of the titanic model program'''
 import unittest
-import titanic_ml
+import sys
 import pandas as pd
 from pathlib import Path
+
+# set the path to find the external module
+sys.path.insert(0, r"C:\Users\maxdu\Github\TitanicML")
+
+import titanic_ml
 
 class TestAPIConfig(unittest.TestCase):
     '''Testing class for the api finding the kaggle folder containing api key'''
@@ -35,10 +40,11 @@ class TestDownloadDatasets(unittest.TestCase):
     def setUp(self):
         '''Authenticate the api before downloading'''
         titanic_ml.kaggle.api.authenticate()
+        titanic_ml.download_data("titanic", "train.csv", "./data")
+        titanic_ml.download_data("titanic", "test.csv", "./data")
 
     def test_file_creation(self):
         '''will test that the proper file names are created in the right folder'''
-        titanic_ml.download_data()
 
         train_path = Path("./data/train.csv")
         test_path = Path("./data/test.csv")
@@ -48,6 +54,7 @@ class TestDownloadDatasets(unittest.TestCase):
 
     def test_file_contents(self):
         '''Will test that the right columns are present in the dataframe'''
+        # will read from cwd, should be updated in the future to handle different directories
         train_df = pd.read_csv("./data/train.csv")
         columns = {"PassengerId", "Survived", "Pclass", "Name", 
                    "Sex", "Age", "SibSp", "Parch", "Ticket",
