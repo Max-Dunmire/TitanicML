@@ -5,6 +5,10 @@ os.environ['KAGGLE_CONFIG_DIR'] = r"C:\Users\maxdu\.kaggle\kaggle_private"
 
 import kaggle
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import model
+import data_processing
 
 # authenticate api
 kaggle.api.authenticate()
