@@ -24,8 +24,21 @@ def read_data(path : str) -> pd.DataFrame:
     df = pd.read_csv(path)
     return df
 
+def apply_encoding(df : pd.DataFrame):
+    df['Sex'] = df['Sex'].apply(lambda sex: {'male':0, 'female':1}[sex])
+    df['Embarked'] = df['Embarked'].apply(lambda port: {'Q':0, 'S':1, 'C':2}[port])
+    df['Name'] = data_processing.encode_names(df['Name'])
+    df['Ticket'] = data_processing.encode_tickets(df['Ticket'])
+
 def main():
-    pass
+    download_data('titanic', 'train.csv', "./data")
+    download_data('titanic', 'test.csv', "./data")
+
+    train_data = read_data("./data/train.csv")
+    test_data = read_data("./data/test.csv")
+
+    apply_encoding(train_data)
+    print(train_data.head(10))
 
 if __name__ == "__main__":
     main()

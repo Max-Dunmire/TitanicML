@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 
 # set the path to find the external module
-sys.path.insert(0, r"C:\Users\maxdu\Github\TitanicML")
+sys.path.insert(0, r"C:\Users\maxdu\Github\Kaggle\TitanicML")
 
 import titanic_ml
 
@@ -24,7 +24,6 @@ class TestAPIConfig(unittest.TestCase):
 
         try:
             # import kaggle api
-            import kaggle
             from kaggle.api.kaggle_api_extended import KaggleApi
             api = KaggleApi()
             api.authenticate()
