@@ -21,21 +21,30 @@ def download_data(competition, file_name, path) -> None:
     kaggle.api.competition_download_file(competition=competition, file_name=file_name, path=path)
 
 def read_data(path : str) -> pd.DataFrame:
+    '''Will read csv of downloaded data and return a dataframe'''
     df = pd.read_csv(path)
     return df
 
-def apply_encoding(df : pd.DataFrame):
+def apply_encoding(df : pd.DataFrame, longest_name : int, longest_ticket : int) -> None:
+    '''Applies the encoding to the dataframe needed to remove strings'''
     df['Sex'] = df['Sex'].apply(lambda sex: {'male':0, 'female':1}[sex])
     df['Embarked'] = df['Embarked'].apply(lambda port: {'Q':0, 'S':1, 'C':2}[port])
-    df['Name'] = data_processing.encode_names(df['Name'])
-    df['Ticket'] = data_processing.encode_tickets(df['Ticket'])
+    df['Name'] = data_processing.encode_names(df['Name'], longest_name)
+    df['Ticket'] = data_processing.encode_tickets(df['Ticket'], longest_ticket)
 
 def test_train_split(data : pd.DataFrame, seed : int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    '''Split the training data into train and validation'''
     generator = torch.Generator().manual_seed(seed)
     train_size = int(0.8*len(data))
     val_size = len(data) - train_size
     train, validation = torch.utils.data.random_split(data, [train_size, val_size], generator=generator)
     return (train, validation)
+
+def longest_element(series1 : pd.Series, series2 : pd.Series) -> int:
+    '''Finds the longest element in a column with string data across both data frames'''
+    train_max = data_processing.grab_max_len(series1)
+    test_max = data_processing.grab_max_len(series2)
+    return max(train_max, test_max)
 
 def main():
     download_data('titanic', 'train.csv', "./data")
@@ -47,14 +56,32 @@ def main():
     data_processing.preprocess(train_data)
     data_processing.preprocess(test_data)
 
-    apply_encoding(train_data)
-    apply_encoding(test_data)
+    longest_name = longest_element(train_data['Name'], test_data['Name'])
+    longest_ticket = longest_element(train_data['Ticket'], test_data['Ticket'])
+
+    apply_encoding(train_data, longest_name, longest_ticket)
+    apply_encoding(test_data, longest_name, longest_ticket)
 
     # to sample data transformations
     # train_data.to_csv("sample1.csv")
     # test_data.to_csv("sample2.csv")
 
-    train, val = test_train_split(train_data, 42)
+    # print(len(train_data.columns) + len(train_data['Ticket'].iat[0]) + len(train_data['Name'].iat[0]) - 2)
+
+    train, validation = test_train_split(train_data, 42)
+
+    train_vals = train.drop('Survived')
+    train_labels = train['Survived']
+    validation_vals = validation.drop('Survived')
+    validation_labels = validation['Survived']
+
+    train_vals = torch.FloatTensor(train_vals.values)
+    train_labels = torch.FloatTensor(train_labels.values)
+    validation_vals = torch.FloatTensor(validation_vals.values)
+    validation_labels = torch.FloatTensor(validation_labels.values)
+
+    
+
 
 if __name__ == "__main__":
     main()

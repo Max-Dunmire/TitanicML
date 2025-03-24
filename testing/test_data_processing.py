@@ -20,7 +20,7 @@ class TestCreateVocabulary(unittest.TestCase):
                               'y':7, 'B':8, 'r':9, 't':10, 'a':11, 'Z':12,
                               'o':13, 'k':14, 'u':15, 's':16, 'Y':17, "max":9}
         
-        vocabulary = data_processing._create_vocabulary(names)
+        vocabulary = data_processing._create_vocabulary(names, 9)
         # print(vocabulary) # uncomment to see the dictionary (debugging)
         self.assertTrue(correct_vocabulary == vocabulary, "Dictionaries did not match")
 
@@ -47,7 +47,7 @@ class TestEncodeNames(unittest.TestCase):
         names = pd.Series(['Alice', 'Amy', 'Bertram'])
         correct_lists = pd.Series([[1, 2, 3, 4, 5, 0, 0], [1, 6, 7, 0, 0, 0, 0], [8, 5, 9, 10, 9, 11, 6]])
 
-        encoded_names = data_processing.encode_names(names)
+        encoded_names = data_processing.encode_names(names, 7)
 
         self.assertTrue(correct_lists.equals(encoded_names))
 
