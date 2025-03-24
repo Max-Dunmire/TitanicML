@@ -51,6 +51,16 @@ class TestEncodeNames(unittest.TestCase):
 
         self.assertTrue(correct_lists.equals(encoded_names))
 
+class TestPreprocess(unittest.TestCase):
+    '''Will test for removal of NaN values of the data frame.'''
+
+    def test_remove_NaN(self):
+        '''Tests that rows with NaN values are dropped'''
+        df = pd.DataFrame({'a':[1,2,None], 'b':[None, 3,4], 'c':[5,6,7], 'Cabin':[None,3,4]})
+        data_processing.preprocess(df)
+
+        self.assertTrue(len(df) == 1)
+        self.assertTrue(not bool(df.isna().any().any()))
 
 if __name__ == "__main__":
     unittest.main()

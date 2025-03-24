@@ -30,6 +30,13 @@ def apply_encoding(df : pd.DataFrame):
     df['Name'] = data_processing.encode_names(df['Name'])
     df['Ticket'] = data_processing.encode_tickets(df['Ticket'])
 
+def test_train_split(data : pd.DataFrame, seed : int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    generator = torch.Generator().manual_seed(seed)
+    train_size = int(0.8*len(data))
+    val_size = len(data) - train_size
+    train, validation = torch.utils.data.random_split(data, [train_size, val_size], generator=generator)
+    return (train, validation)
+
 def main():
     download_data('titanic', 'train.csv', "./data")
     download_data('titanic', 'test.csv', "./data")
@@ -37,8 +44,17 @@ def main():
     train_data = read_data("./data/train.csv")
     test_data = read_data("./data/test.csv")
 
+    data_processing.preprocess(train_data)
+    data_processing.preprocess(test_data)
+
     apply_encoding(train_data)
-    print(train_data.head(10))
+    apply_encoding(test_data)
+
+    # to sample data transformations
+    # train_data.to_csv("sample1.csv")
+    # test_data.to_csv("sample2.csv")
+
+    train, val = test_train_split(train_data, 42)
 
 if __name__ == "__main__":
     main()

@@ -53,3 +53,10 @@ def encode_tickets(tickets : pd.Series) -> pd.Series:
     vocabulary = _create_vocabulary(tickets)
     encoded_tickets = _assign_values(tickets, vocabulary)
     return encoded_tickets
+
+def preprocess(df : pd.DataFrame) -> None:
+    '''Will be remove NaN values from the data frame'''
+    # drops all rows containing a NaN value
+    # may be changed in the future to replace with median value
+    df.drop('Cabin', axis=1, inplace=True) # Cabin row is mostly null, don't want to drop 77% of rows
+    df.dropna(axis=0, inplace=True)

@@ -2,6 +2,7 @@
 import unittest
 import sys
 import pandas as pd
+import numpy as np
 from pathlib import Path
 
 # set the path to find the external module
@@ -59,6 +60,29 @@ class TestDownloadDatasets(unittest.TestCase):
                    "Sex", "Age", "SibSp", "Parch", "Ticket",
                    "Fare", "Cabin", "Embarked"}
         self.assertTrue(set(train_df.columns) == columns)
+
+class TestApplyEncoding(unittest.TestCase):
+    '''Will test the apply encoding function for replaced values, tests will not
+       function if the preprocess function is not correct.'''
+
+    def setUp(self):
+        '''Makes sure the dataset has been downloaded for testing'''
+        titanic_ml.download_data('titanic', 'train.csv', './data')
+        
+    def test_names(self):
+        '''Will test that the names column of the dataset has been set to the right data-type'''
+        df = pd.read_csv('./data/train.csv')
+        titanic_ml.data_processing.preprocess(df)
+        titanic_ml.apply_encoding(df)
+        encoded_names = df['Name']
+
+        self.assertIs(type(encoded_names.iat[0]), list, "Names have not been converted to lists")
+        self.assertIs(type(encoded_names.iat[0][0]), int, "Name lists are not of integers")
+        self.assertIs(type(df['Sex'].iat[0]), np.int64, "Sexs have not been converted to int")
+        self.assertIs(type(df['Embarked'].iat[0]), np.int64, "Ports have not been converted to int")
+        self.assertIs(type(df['Ticket'].iat[0]), list, "Tickets have not been converted to lists")
+        self.assertIs(type(df['Ticket'].iat[0][0]), int, "Name lists are not of integers")
+
 
 if __name__ == "__main__":
     unittest.main()
