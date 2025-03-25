@@ -63,7 +63,30 @@ def grab_max_len(series : pd.Series) -> int:
     '''Will grab the longest item length and return it.'''
     return int(series.apply(len).max())
 
-def unpack_lists(df : pd.DataFrame):
+def unpack_lists(df : pd.DataFrame, column : str) -> pd.DataFrame:
     '''Takes a column containing list data and turns 
        it into regular indices of the data frame'''
-    
+    # grab the index of the inputted column
+    columns = list(df.columns)
+    col_index = columns.index(column)
+
+    # divide the dataframe into the parts before and after the column
+    first_half = df.iloc[:,0:col_index]
+    second_half = df.iloc[:, col_index+1:]
+
+    # extract the column with lists
+    list_column = df[column]
+
+    # create a list of lists
+    lists = []
+    for i in range(len(list_column)):
+        lists.append(list_column.iat[i])
+
+    # convert list of lists into dataframe
+    middle = pd.DataFrame(lists)
+
+    # put all parts into a list
+    all_parts = [first_half, middle, second_half]
+    # concatenate all the data frames together
+    total_df = pd.concat(all_parts, axis=1)
+    return total_df
