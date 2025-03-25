@@ -7,9 +7,10 @@ import kaggle
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.data import TensorDataset, DataLoader
 import pandas as pd
-import model
 import data_processing
+from model import TitanicModel
 
 # authenticate api
 kaggle.api.authenticate()
@@ -32,7 +33,7 @@ def apply_encoding(df : pd.DataFrame, longest_name : int, longest_ticket : int) 
     df['Name'] = data_processing.encode_names(df['Name'], longest_name)
     df['Ticket'] = data_processing.encode_tickets(df['Ticket'], longest_ticket)
 
-def test_train_split(data : pd.DataFrame, seed : int) -> tuple[pd.DataFrame, pd.DataFrame]:
+def test_train_split(data : torch.utils.data.Dataset, seed : int) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''Split the training data into train and validation'''
     generator = torch.Generator().manual_seed(seed)
     train_size = int(0.8*len(data))
@@ -68,20 +69,45 @@ def main():
 
     # print(len(train_data.columns) + len(train_data['Ticket'].iat[0]) + len(train_data['Name'].iat[0]) - 2)
 
-    train, validation = test_train_split(train_data, 42)
-
-    train_vals = train.drop('Survived')
-    train_labels = train['Survived']
-    validation_vals = validation.drop('Survived')
-    validation_labels = validation['Survived']
+    train_vals = train_data.drop('Survived', axis=1)
+    train_labels = train_data['Survived']
 
     train_vals = torch.FloatTensor(train_vals.values)
     train_labels = torch.FloatTensor(train_labels.values)
-    validation_vals = torch.FloatTensor(validation_vals.values)
-    validation_labels = torch.FloatTensor(validation_labels.values)
 
+    titanic_dataset = TensorDataset(train_vals, train_labels)
+
+    train, validation = test_train_split(titanic_dataset, 42)
+
+    train_loader = DataLoader(train, batch_size=32)
+
+    model = TitanicModel()
+
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+    epochs = 10
     
+    for epoch in range(epochs):
 
+        running_loss = 0.0
+
+        for index, data in enumerate(train_loader):
+            data, labels = data
+
+            optimizer.zero_grad()
+
+            predictions = model(data)
+
+            loss : torch.Tensor = criterion(predictions, labels)
+            loss.backward()
+
+            optimizer.step()
+
+        print(f'Loss: {running_loss / len(train_loader):.4f}')
+
+    print(model.state_dict())
 
 if __name__ == "__main__":
     main()

@@ -6,6 +6,7 @@ class TitanicModel(nn.Module):
     '''The model for the titanic predictions, features listed soon'''
     def __init__(self):
         '''Sets up the model features'''
+        super().__init__()
         # 109 nodes to input data
         self.fc1 = nn.Linear(109, 32)
         self.fc2 = nn.Linear(32, 8)

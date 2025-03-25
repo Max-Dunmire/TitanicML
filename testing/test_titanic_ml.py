@@ -73,7 +73,9 @@ class TestApplyEncoding(unittest.TestCase):
         '''Will test that the names column of the dataset has been set to the right data-type'''
         df = pd.read_csv('./data/train.csv')
         titanic_ml.data_processing.preprocess(df)
-        titanic_ml.apply_encoding(df)
+        len_name = titanic_ml.data_processing.grab_max_len(df['Name'])
+        len_ticket = titanic_ml.data_processing.grab_max_len(df['Ticket'])
+        titanic_ml.apply_encoding(df, len_name, len_ticket)
         encoded_names = df['Name']
 
         self.assertIs(type(encoded_names.iat[0]), list, "Names have not been converted to lists")

@@ -62,3 +62,8 @@ def preprocess(df : pd.DataFrame) -> None:
 def grab_max_len(series : pd.Series) -> int:
     '''Will grab the longest item length and return it.'''
     return int(series.apply(len).max())
+
+def unpack_lists(df : pd.DataFrame):
+    '''Takes a column containing list data and turns 
+       it into regular indices of the data frame'''
+    
