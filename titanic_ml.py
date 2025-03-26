@@ -64,16 +64,18 @@ def main():
     apply_encoding(test_data, longest_name, longest_ticket)
 
     # to sample data transformations
-    # train_data.to_csv("sample1.csv")
-    # test_data.to_csv("sample2.csv")
+    # train_data.to_csv("sample3.csv", index=False)
 
     # print(len(train_data.columns) + len(train_data['Ticket'].iat[0]) + len(train_data['Name'].iat[0]) - 2)
+
+    train_data = data_processing.unpack_lists(train_data, 'Name')
+    train_data = data_processing.unpack_lists(train_data, 'Ticket')
 
     train_vals = train_data.drop('Survived', axis=1)
     train_labels = train_data['Survived']
 
     train_vals = torch.FloatTensor(train_vals.values)
-    train_labels = torch.FloatTensor(train_labels.values)
+    train_labels = torch.LongTensor(train_labels.values)
 
     titanic_dataset = TensorDataset(train_vals, train_labels)
 
@@ -82,7 +84,6 @@ def main():
     train_loader = DataLoader(train, batch_size=32)
 
     model = TitanicModel()
-
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -105,9 +106,10 @@ def main():
 
             optimizer.step()
 
+            running_loss += loss.item()
+
         print(f'Loss: {running_loss / len(train_loader):.4f}')
 
-    print(model.state_dict())
 
 if __name__ == "__main__":
     main()

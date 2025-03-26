@@ -8,7 +8,7 @@ class TitanicModel(nn.Module):
         '''Sets up the model features'''
         super().__init__()
         # 109 nodes to input data
-        self.fc1 = nn.Linear(109, 32)
+        self.fc1 = nn.Linear(108, 32)
         self.fc2 = nn.Linear(32, 8)
         self.fc3 = nn.Linear(8, 2)
         # 2 categories (survived or dead)

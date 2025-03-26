@@ -36,7 +36,7 @@ def _assign_values(names : pd.Series, vocabulary : dict[str, int]) -> pd.Series:
         number_encoded = number_encoded + zeros # combine lists
         encoded_names.append(number_encoded)
 
-    return pd.Series(encoded_names)
+    return encoded_names
 
 def encode_names(names : pd.Series, longest_value : int) -> pd.Series:
     '''puts create vocab and assign values functions together to encode names'''
@@ -74,6 +74,11 @@ def unpack_lists(df : pd.DataFrame, column : str) -> pd.DataFrame:
     first_half = df.iloc[:,0:col_index]
     second_half = df.iloc[:, col_index+1:]
 
+    # resets indexes to counting order after dropping NaN rows
+    # avoids issues with combining data frames with conflicting index numbers
+    first_half.reset_index(drop=True, inplace=True)
+    second_half.reset_index(drop=True, inplace=True)
+
     # extract the column with lists
     list_column = df[column]
 
@@ -89,4 +94,5 @@ def unpack_lists(df : pd.DataFrame, column : str) -> pd.DataFrame:
     all_parts = [first_half, middle, second_half]
     # concatenate all the data frames together
     total_df = pd.concat(all_parts, axis=1)
+    total_df.reindex
     return total_df
