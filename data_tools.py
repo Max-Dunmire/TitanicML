@@ -52,12 +52,13 @@ def encode_tickets(tickets : pd.Series, longest_ticket : int) -> pd.Series:
     encoded_tickets = _assign_values(tickets, vocabulary)
     return encoded_tickets
 
-def preprocess(df : pd.DataFrame) -> None:
+def preprocess(df : pd.DataFrame, train: bool) -> None:
     '''Will be remove NaN values from the data frame'''
     # drops all rows containing a NaN value
     # may be changed in the future to replace with median value
     df.drop('Cabin', axis=1, inplace=True) # Cabin row is mostly null, don't want to drop 77% of rows
-    df.dropna(axis=0, inplace=True)
+    if train:
+        df.dropna(axis=0, inplace=True)
 
 def grab_max_len(series : pd.Series) -> int:
     '''Will grab the longest item length and return it.'''

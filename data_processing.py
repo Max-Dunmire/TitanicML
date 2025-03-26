@@ -23,8 +23,8 @@ def main():
     train_data = read_data("data/train.csv")
     test_data = read_data("data/test.csv")
 
-    data_tools.preprocess(train_data)
-    data_tools.preprocess(test_data)
+    data_tools.preprocess(train_data, train=True)
+    data_tools.preprocess(test_data, train=False)
 
     longest_name = longest_element(train_data['Name'], test_data['Name'])
     longest_ticket = longest_element(train_data['Ticket'], test_data['Ticket'])
