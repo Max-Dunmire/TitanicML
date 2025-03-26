@@ -1,98 +1,48 @@
-'''Contains important data processing methods for making data neural network friendly'''
 import pandas as pd
+import data_tools
 
-def _create_vocabulary(names : pd.Series, longest : int) -> dict:
-    '''Will create a vocabulary of all characters seen in names list with integer code'''
+def read_data(path : str) -> pd.DataFrame:
+    '''Will read csv of downloaded data and return a dataframe'''
+    df = pd.read_csv(path)
+    return df
 
-    vocabulary = {'max' : longest} # max will keep track of longest name
-    index = 1 # we will reserve 0 for padding
+def apply_encoding(df : pd.DataFrame, longest_name : int, longest_ticket : int) -> None:
+    '''Applies the encoding to the dataframe needed to remove strings'''
+    df['Sex'] = df['Sex'].apply(lambda sex: {'male':0, 'female':1}[sex])
+    df['Embarked'] = df['Embarked'].apply(lambda port: {'Q':0, 'S':1, 'C':2}[port])
+    df['Name'] = data_tools.encode_names(df['Name'], longest_name)
+    df['Ticket'] = data_tools.encode_tickets(df['Ticket'], longest_ticket)
 
-    for i in range(len(names)):
-        name = names.iat[i] # grab each name
-        for letter in name:
-            # if the letter has not yet been seen then add it
-            if not vocabulary.get(letter):
-                vocabulary[letter] = index
-                index += 1
+def longest_element(series1 : pd.Series, series2 : pd.Series) -> int:
+    '''Finds the longest element in a column with string data across both data frames'''
+    train_max = data_tools.grab_max_len(series1)
+    test_max = data_tools.grab_max_len(series2)
+    return max(train_max, test_max)
 
-    return vocabulary
+def main():
+    train_data = read_data("data/train.csv")
+    test_data = read_data("data/test.csv")
 
-def _assign_values(names : pd.Series, vocabulary : dict[str, int]) -> pd.Series:
-    '''Will take list of names and vocabulary and translate the name to integer list'''
+    data_tools.preprocess(train_data)
+    data_tools.preprocess(test_data)
 
-    encoded_names = []
+    longest_name = longest_element(train_data['Name'], test_data['Name'])
+    longest_ticket = longest_element(train_data['Ticket'], test_data['Ticket'])
 
-    for i in range(len(names)):
+    apply_encoding(train_data, longest_name, longest_ticket)
+    apply_encoding(test_data, longest_name, longest_ticket)
 
-        name = names.iat[i] # grab name
+    train_data = data_tools.unpack_lists(train_data, 'Name')
+    train_data = data_tools.unpack_lists(train_data, 'Ticket')
+    test_data = data_tools.unpack_lists(test_data, 'Name')
+    test_data = data_tools.unpack_lists(test_data, 'Ticket')
 
-        # find value for each letter in name
-        number_encoded = [vocabulary[letter] for letter in name]
+    train_vals = train_data.drop('Survived', axis=1)
+    train_labels = train_data['Survived']
 
-        # use max value to determine number of 0s needed for padding
-        zeros = vocabulary['max'] - len(number_encoded)
-        zeros = [0]*zeros # create array of zeros
+    train_vals.to_csv("data/training_data.csv", index=False)
+    train_labels.to_csv("data/training_labels.csv", index=False)
+    test_data.to_csv("data/test_model.csv", index=False)
 
-        number_encoded = number_encoded + zeros # combine lists
-        encoded_names.append(number_encoded)
-
-    return encoded_names
-
-def encode_names(names : pd.Series, longest_value : int) -> pd.Series:
-    '''puts create vocab and assign values functions together to encode names'''
-
-    vocabulary = _create_vocabulary(names, longest_value)
-    encoded_names = _assign_values(names, vocabulary)
-    return encoded_names
-
-def encode_tickets(tickets : pd.Series, longest_ticket : int) -> pd.Series:
-    ''''Uses same name encoding functions to encode ticket numbers'''
-
-    vocabulary = _create_vocabulary(tickets, longest_ticket)
-    encoded_tickets = _assign_values(tickets, vocabulary)
-    return encoded_tickets
-
-def preprocess(df : pd.DataFrame) -> None:
-    '''Will be remove NaN values from the data frame'''
-    # drops all rows containing a NaN value
-    # may be changed in the future to replace with median value
-    df.drop('Cabin', axis=1, inplace=True) # Cabin row is mostly null, don't want to drop 77% of rows
-    df.dropna(axis=0, inplace=True)
-
-def grab_max_len(series : pd.Series) -> int:
-    '''Will grab the longest item length and return it.'''
-    return int(series.apply(len).max())
-
-def unpack_lists(df : pd.DataFrame, column : str) -> pd.DataFrame:
-    '''Takes a column containing list data and turns 
-       it into regular indices of the data frame'''
-    # grab the index of the inputted column
-    columns = list(df.columns)
-    col_index = columns.index(column)
-
-    # divide the dataframe into the parts before and after the column
-    first_half = df.iloc[:,0:col_index]
-    second_half = df.iloc[:, col_index+1:]
-
-    # resets indexes to counting order after dropping NaN rows
-    # avoids issues with combining data frames with conflicting index numbers
-    first_half.reset_index(drop=True, inplace=True)
-    second_half.reset_index(drop=True, inplace=True)
-
-    # extract the column with lists
-    list_column = df[column]
-
-    # create a list of lists
-    lists = []
-    for i in range(len(list_column)):
-        lists.append(list_column.iat[i])
-
-    # convert list of lists into dataframe
-    middle = pd.DataFrame(lists)
-
-    # put all parts into a list
-    all_parts = [first_half, middle, second_half]
-    # concatenate all the data frames together
-    total_df = pd.concat(all_parts, axis=1)
-    total_df.reindex
-    return total_df
+if __name__ == "__main__":
+    main()
